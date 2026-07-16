@@ -24,3 +24,8 @@ def test_ws_dispatch():
     # Test swipe3
     DISPATCH_TABLE["swipe3"](backend, {"direction": "up"})
     assert backend.calls[-1] == ("swipe", (3, "up"))
+
+def test_smoke_import_app():
+    # Trivial smoke test to ensure no import-time crashes (like __dirname__)
+    import server.app
+    assert server.app is not None

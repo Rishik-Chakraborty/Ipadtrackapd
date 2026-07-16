@@ -65,6 +65,14 @@ export class GestureRecognizer {
     }
     
     if (!this.locked || eventType === "start") {
+      if (this.state === STATE.DRAGGING) {
+        this.onGesture("drag_end", { fingers: 1 });
+        this.onHaptic("impact", "light");
+      } else if (this.state === STATE.THREE_DRAG) {
+        this.onGesture("drag_end", { fingers: 3 });
+        this.onHaptic("impact", "light");
+      }
+
       if (touches.length === 1) this._startSession(STATE.ONE_DOWN, touches);
       else if (touches.length === 2) this._startSession(STATE.TWO_DOWN, touches);
       else if (touches.length === 3) this._startSession(STATE.THREE_DOWN, touches);
@@ -115,15 +123,17 @@ export class GestureRecognizer {
         const dy = centroid.y - this.prevCentroid.y;
         
         if (this.state === STATE.ONE_DOWN) {
-          if (this._cumulativeMovement(touches) > CONFIG.MOVE_THRESHOLD_PX) {
+          if (this._cumulativeMovement(touches) > CONFIG.TAP_MAX_MOVEMENT_PX) {
             this.state = STATE.MOVING;
           }
         }
         
         if (this.state === STATE.TAP_ARMED) {
-          this.state = STATE.DRAGGING;
-          this.onGesture("drag_start", 1);
-          this.onHaptic("selection", null);
+          if (this._cumulativeMovement(touches) > CONFIG.TAP_MAX_MOVEMENT_PX) {
+            this.state = STATE.DRAGGING;
+            this.onGesture("drag_start", { fingers: 1 });
+            this.onHaptic("selection", null);
+          }
         }
 
         if (this.state === STATE.MOVING || this.state === STATE.ONE_DOWN) {
@@ -147,7 +157,6 @@ export class GestureRecognizer {
     if (eventType === "move" && this.prevCentroid && this.prevDistance !== null) {
       const dx = centroid.x - this.prevCentroid.x;
       const dy = centroid.y - this.prevCentroid.y;
-      const dDist = dist - this.prevDistance;
 
       if (this.state === STATE.TWO_DOWN) {
         const moveDist = Math.sqrt(dx*dx + dy*dy);
@@ -189,7 +198,7 @@ export class GestureRecognizer {
              this.state = STATE.SWIPE_CANDIDATE; // Locked to swipe, further move ignored
           } else {
              this.state = STATE.THREE_DRAG;
-             this.onGesture("drag_start", 3);
+             this.onGesture("drag_start", { fingers: 3 });
              this.onHaptic("selection", null);
           }
         }
@@ -230,7 +239,7 @@ export class GestureRecognizer {
     } else {
       direction = dy > 0 ? "down" : "up";
     }
-    this.onGesture(`swipe${fingers}`, direction);
+    this.onGesture(`swipe${fingers}`, { direction });
     this.onHaptic("impact", "medium");
   }
 
@@ -252,8 +261,14 @@ export class GestureRecognizer {
         }, CONFIG.DRAG_ARM_WINDOW_MS);
         return;
       }
+    } else if (this.state === STATE.TAP_ARMED) {
+      const duration = performance.now() - this.startTouches[0].startT;
+      if (duration < CONFIG.TAP_MAX_DURATION_MS) {
+        this.onGesture("click", null);
+        this.onHaptic("impact", "light");
+      }
     } else if (this.state === STATE.DRAGGING) {
-      this.onGesture("drag_end", 1);
+      this.onGesture("drag_end", { fingers: 1 });
       this.onHaptic("impact", "light");
     } else if (this.state === STATE.TWO_DOWN) {
       const duration = performance.now() - this.startTouches[0].startT;
@@ -262,7 +277,7 @@ export class GestureRecognizer {
         this.onHaptic("impact", "medium");
       }
     } else if (this.state === STATE.THREE_DRAG) {
-      this.onGesture("drag_end", 3);
+      this.onGesture("drag_end", { fingers: 3 });
       this.onHaptic("impact", "light");
     }
     

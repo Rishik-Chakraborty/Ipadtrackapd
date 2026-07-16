@@ -36,7 +36,9 @@ function connectWS() {
 
   ws.onclose = () => {
     statusDot.className = "";
-    haptics.notification("error");
+    if (reconnectAttempts === 0) {
+      haptics.notification("error");
+    }
     scheduleReconnect();
   };
 
@@ -59,13 +61,13 @@ function sendGesture(type, payload) {
   if (type === "move") msg = protocol.moveMsg(payload.dx, payload.dy);
   else if (type === "click") msg = protocol.clickMsg();
   else if (type === "right_click") msg = protocol.rightClickMsg();
-  else if (type === "drag_start") msg = protocol.dragStartMsg(payload);
+  else if (type === "drag_start") msg = protocol.dragStartMsg(payload.fingers);
   else if (type === "drag_move") msg = protocol.dragMoveMsg(payload.dx, payload.dy, payload.fingers);
-  else if (type === "drag_end") msg = protocol.dragEndMsg(payload);
+  else if (type === "drag_end") msg = protocol.dragEndMsg(payload.fingers);
   else if (type === "scroll") msg = protocol.scrollMsg(payload.dx, payload.dy, payload.phase);
   else if (type === "zoom") msg = protocol.zoomMsg(payload.scale, payload.phase);
-  else if (type === "swipe3") msg = protocol.swipeMsg(3, payload);
-  else if (type === "swipe4") msg = protocol.swipeMsg(4, payload);
+  else if (type === "swipe3") msg = protocol.swipeMsg(3, payload.direction);
+  else if (type === "swipe4") msg = protocol.swipeMsg(4, payload.direction);
   
   if (msg) {
     ws.send(JSON.stringify(msg));

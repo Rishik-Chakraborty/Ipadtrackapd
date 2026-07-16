@@ -7,6 +7,7 @@ def _current_location():
     return Quartz.CGEventGetLocation(event)
 
 def _clamp_to_display(point):
+    # Note: clamps to main display only; multi-monitor setup cannot move to secondary display in v1
     bounds = Quartz.CGDisplayBounds(Quartz.CGMainDisplayID())
     x = max(bounds.origin.x, min(point.x, bounds.origin.x + bounds.size.width - 1))
     y = max(bounds.origin.y, min(point.y, bounds.origin.y + bounds.size.height - 1))
