@@ -1,0 +1,5 @@
+aiohttp>=3.9
+pyobjc-framework-Quartz>=10.0
+pyobjc-framework-ApplicationServices>=10.0
+zeroconf>=0.131
+qrcode>=7.4

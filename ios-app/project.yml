@@ -1,0 +1,13 @@
+name: Ipadtrackapd
+options:
+  bundleIdPrefix: com.example
+targets:
+  Ipadtrackapd:
+    type: application
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources: [Ipadtrackapd]
+    info:
+      path: Ipadtrackapd/Info.plist
+      properties:
+        UILaunchScreen: {}
