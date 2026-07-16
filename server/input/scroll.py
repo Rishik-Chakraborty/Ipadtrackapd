@@ -6,5 +6,5 @@ def scroll(dx: float, dy: float, phase: str = "changed") -> None:
         dx = -dx
         dy = -dy
     
-    event = Quartz.CGEventCreateScrollWheelEvent2(None, Quartz.kCGScrollEventUnitPixel, 2, int(dy), int(dx), 0)
+    event = Quartz.CGEventCreateScrollWheelEvent(None, Quartz.kCGScrollEventUnitPixel, 2, int(dy), int(dx))
     Quartz.CGEventPost(Quartz.kCGHIDEventTap, event)
