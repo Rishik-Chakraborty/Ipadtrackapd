@@ -192,15 +192,15 @@ export class GestureRecognizer {
       const duration = performance.now() - this.startTouches[0].startT;
       
       if (this.state === STATE.THREE_DOWN) {
-        if (cumMove > CONFIG.SWIPE_MIN_DISTANCE_PX) {
-          if (duration < CONFIG.SWIPE_MAX_DURATION_MS) {
-             this._fireSwipe(3, dx, dy);
-             this.state = STATE.SWIPE_CANDIDATE; // Locked to swipe, further move ignored
-          } else {
-             this.state = STATE.THREE_DRAG;
-             this.onGesture("drag_start", { fingers: 3 });
-             this.onHaptic("selection", null);
-          }
+        if (cumMove > CONFIG.SWIPE_MIN_DISTANCE_PX && duration < CONFIG.SWIPE_MAX_DURATION_MS) {
+          // Crossed a real swipe-flick distance while still inside the short "is this a flick" window.
+          this._fireSwipe(3, dx, dy);
+          this.state = STATE.SWIPE_CANDIDATE; // Locked to swipe, further move ignored
+        } else if (cumMove > CONFIG.THREE_DRAG_THRESHOLD_PX && duration >= CONFIG.SWIPE_MAX_DURATION_MS) {
+          // Flick window has passed without a fast flick, but there's real movement -> start dragging now.
+          this.state = STATE.THREE_DRAG;
+          this.onGesture("drag_start", { fingers: 3 });
+          this.onHaptic("selection", null);
         }
       }
 
